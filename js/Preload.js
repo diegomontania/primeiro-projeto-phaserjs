@@ -24,8 +24,11 @@ TheLittleGuy.Preload.prototype = {
         this.load.image('ground', 'assets/images/game/platform.png');
         this.load.image('star', 'assets/images/game/star.png');
         this.load.spritesheet('dude', 'assets/images/game/dude.png', 32, 48);
+        this.load.image('dude_hud', 'assets/images/game/dude_hud.png');
+        this.load.image('spike', 'assets/images/game/spike.png');
         this.load.audio('backgroundMusic', 'assets/sounds/background_music.mp3');
         this.load.audio('starEffect', 'assets/sounds/star_effect.mp3');
+        this.load.audio('jumpEffect', 'assets/sounds/jump_effect.mp3');
     },
 
     create: function(){

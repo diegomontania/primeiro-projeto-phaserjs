@@ -8,7 +8,6 @@ TheLittleGuy.MainMenu.prototype = {
         //this.background = this.stage.backgroundColor = "#000000";
         this.add.sprite(0, 0, 'menuBackground');
         this.add.button(610, 250, 'playButton', this.clickButton);
-        
 
         //start game text
         /*var text = "Tap to begin";

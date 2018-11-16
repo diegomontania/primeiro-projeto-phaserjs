@@ -10,14 +10,16 @@ TheLittleGuy.Game.prototype = {
         //variaveis do player
         this.jumpForce = 350;
         this.velocityPlayer = 150;
-        this.lifePlayer = 3; //não utilizada ainda
+        this.gravityForce = 450;
+        this.lifePlayer = 100;
         this.pointsPlayer = 0;
         this.pointsMax = 120;
+        this.damagePlayer = 0; //inicialmente comecará com 0
 
         //registrando uma tecla        propriedade do phase da tecla desejada
         this.spaceKey = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
         
-        //adicionando backgroudn
+        //adicionando background
         //              x  y  objeto
         this.add.sprite(0, 0, 'sky');
 
@@ -33,7 +35,7 @@ TheLittleGuy.Game.prototype = {
         this.platforms = this.add.group();
         this.platforms.enableBody = true; //adicionando fisica para qualquer objeto dentro desse grupo (plataforms)
         
-        //grupo de estrelas
+        //criando grupo de estrelas
         this.stars = this.add.group();
         this.stars.enableBody = true;
 
@@ -53,17 +55,17 @@ TheLittleGuy.Game.prototype = {
         //criando 'plataformas'
         var ledge;
 
-        ledge = this.platforms.create(400, 400, 'ground'); //plataforma 1
+        ledge = this.platforms.create(-150, 300, 'ground'); //plataforma 1
         ledge.body.immovable = true;
 
-        ledge = this.platforms.create(-150, 250, 'ground'); //plataforma 2
+        ledge = this.platforms.create(400, 400, 'ground'); //plataforma 2
         ledge.body.immovable = true;
 
         //criando jogador
         this.player = this.add.sprite(32, this.world.height - 150, 'dude');
         this.physics.arcade.enable(this.player); //habilitando a fisica ao objeto do jogador
         this.player.body.bounce.y = 0.1;         //adicionando propriedades de fisica ao jogador (bounce vai de 0 a 1)
-        this.player.body.gravity.y = 400;
+        this.player.body.gravity.y = this.gravityForce;
         this.player.body.collideWorldBounds = true;
 
         /***qualquer objeto que tenha que ter animação, deverá ser carregado como SPRITESHEET em preload()***/  
@@ -71,16 +73,33 @@ TheLittleGuy.Game.prototype = {
         //               nome animacao / todos os frames dessa animação / velocidade animação / loop sim ou não
         this.player.animations.add('left', [0, 1, 2, 3], 10, true);
         this.player.animations.add('right', [5, 6, 7, 8], 10, true);
-        
+
+        //criando obstaculo
+       /*this.spikes = this.add.group();
+        this.spikes.enableBody = true;
+        this.spike = this.spikes.create(0, 500, 'spike');*/
+
+        //criando e posicionando
+        var barBitmapData = this.add.bitmapData(200,40);
+        barBitmapData.ctx.beginPath();
+        barBitmapData.ctx.rect(0,0,180,30);
+        barBitmapData.ctx.fillStyle = '#31FF00';
+        barBitmapData.ctx.fill();
+        this.healthBar = this.add.sprite(70, 555, barBitmapData); //criando aqui
+        this.healthBar.anchor.y = 0.0;
+        this.add.sprite(0, 540, 'dude_hud'); //rosto do personagem
+
         //detectando as setas do teclado
         cursors = this.input.keyboard.createCursorKeys();  
         
         //criando os sons carregados anteriomente
         this.starEffect = this.game.add.audio('starEffect');
         this.backgroundMusic = this.game.add.audio('backgroundMusic');
+        this.jummpEffect = this.game.add.audio('jumpEffect');
 
         //tocando som de fundo
         this.backgroundMusic.loop = true;
+        this.backgroundMusic.volume = 0.3;
         this.backgroundMusic.play();
     },
 
@@ -97,11 +116,16 @@ TheLittleGuy.Game.prototype = {
         //fazendo jogo terminar
         this.endGame();
 
-        //colidindo dois objetos (estrela e chão)
-        this.physics.arcade.collide(this.stars, this.platforms);
+        //fazendo barra de vida
+        this.lifeBarPlayer();
+
+        //colidindo objetos (estrela e chão)
+        this.physics.arcade.collide(this.stars, this.platforms, this.spikes);
         
         //verificando se o player está sobrepondo (passando por cima ) da estrela e chamando funcao 'collectStar' que vai fazer o jogador coletar a estrela
         this.physics.arcade.overlap(this.player, this.stars, this.collectStar, null, this);
+
+        this.physics.arcade.overlap(this.player, this.spikes, this.collidingEnemy, null, this);
     },
 
     movimentPlayer: function(){
@@ -129,6 +153,8 @@ TheLittleGuy.Game.prototype = {
         //se apertar o de espaço e estiver tocando no chão e em uma plataforma, pule
         if(this.spaceKey.isDown && this.player.body.touching.down && hitPlataform){
             this.player.body.velocity.y =- this.jumpForce;  
+            this.jummpEffect.volume = 0.2;
+            this.jummpEffect.play(); //tocando som de pulo
         }
     },
     
@@ -140,10 +166,21 @@ TheLittleGuy.Game.prototype = {
         }
     },
 
+    /*collidingEnemy: function(player, spikes){
+        spikes.damagePlayer = 10;
+    },*/
+
     collectStar: function(player, star){
         //deletando objeto a ser coletado
         star.kill();
         this.starEffect.play(); //tocando efeito de som
         this.pointsPlayer = this.pointsPlayer + 10; //adicionando pontos
+    },
+
+    lifeBarPlayer: function(){
+        //barra de vida do jogador irá diminuir conforme a sua vida ou seja tomando dano
+        barWidth = this.healthBar.width;
+        this.healthBar.width = barWidth - this.damagePlayer / this.lifePlayer;
+        //mudar cor da barra aqui
     }
 }
