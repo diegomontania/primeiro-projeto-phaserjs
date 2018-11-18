@@ -22,7 +22,7 @@ TheLittleGuy.Preload.prototype = {
         this.load.image('backButton', 'assets/images/menu/backButton.png');
         this.load.image('easterEggButton', 'assets/images/menu/easterEggButton.png');
         this.load.video('video_easterEgg', 'assets/videos/video_easterEgg.mp4'); //easteregg
-        this.load.audio('menu_background_music', 'assets/sounds/menu_background_music.ogg');
+        this.load.audio('menu_background_music', 'assets/sounds/menu_background_music.mp3');
 
         //carregando os assets do jogo
         this.load.image('sky', 'assets/images/game/sky.png');

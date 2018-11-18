@@ -15,17 +15,17 @@ TheLittleGuy.MainMenu.prototype = {
 
         //criando som do menu
         this.backgroundMusic = this.game.add.audio('menu_background_music');
-        this.backgroundMusic.volume = 0.2;
-        this.backgroundMusic.play();
+        this.backgroundMusic.volume = 0.4;
+        //this.backgroundMusic.play(); ainda com problemas
     }, 
 
     update: function() {
-      
+        
     },
 
     //funcao de clicar no botao e trocar de cena
     clickPlay: function() {
-        //this.backgroundMusic.stop(); //parando musica de menu ao começar o jogo ta fudido isso aqui
+        //this.backgroundMusic.pause(); //parando musica de menu ao começar o jogo ainda com problemas
         this.game.state.start('Game');
     },
 
