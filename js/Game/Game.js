@@ -8,7 +8,7 @@ TheLittleGuy.Game.prototype = {
     //funciona como um 'start'
     create: function(){
         //variaveis do player
-        this.jumpForce = 350;
+        this.jumpForce = 250;
         this.velocityPlayer = 150;
         this.gravityForce = 450;
         this.lifePlayer = 100;
@@ -18,10 +18,20 @@ TheLittleGuy.Game.prototype = {
 
         //registrando uma tecla        propriedade do phase da tecla desejada
         this.spaceKey = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
-        
-        //adicionando background
-        //              x  y  objeto
-        this.add.sprite(0, 0, 'sky');
+
+        //criado tiled
+        this.map = this.game.add.tilemap('level1');
+        this.map.addTilesetImage('tiles', 'gameTiles'); //primeiro parametro, nome do tiled, segundo, chave associada a ele
+        this.backgroundlayer = this.map.createLayer('backgroundLayer'); //criando as layers utilizadas no tiled
+        this.blockedLayer = this.map.createLayer('blockedLayer');
+        //colisao entre              1 e 3k de tiles
+        this.map.setCollisionBetween(1, 3000, true, 'blockedLayer'); //colisao com a layer do tiled
+
+        //resizes the game world to match the layer dimensions
+        this.backgroundlayer.resizeWorld();
+
+        //teste tiled
+        //this.createItems();
 
         //criando texto de pontos
         this.textPoints = this.add.text(20, 20, "Apenas Teste", {
@@ -30,10 +40,6 @@ TheLittleGuy.Game.prototype = {
                 align: "center"
         });
         this.textPoints.anchor.setTo(0, 0); //ancorando texto
-        
-        //grupo de plataformas contendo o chao onde poderemos pular
-        this.platforms = this.add.group();
-        this.platforms.enableBody = true; //adicionando fisica para qualquer objeto dentro desse grupo (plataforms)
         
         //criando grupo de estrelas
         this.stars = this.add.group();
@@ -46,27 +52,12 @@ TheLittleGuy.Game.prototype = {
             star.body.bounce.y = 0.7 + Math.random() * 0.2;  //estrelas quicando no chão randomicamente
         }
 
-        //criando chao principal          
-        //                             x            y             nome do objeto
-        var ground = this.platforms.create(0, this.world.height - 64, 'ground');
-        ground.scale.setTo(2, 2);      //redimencionando para que fique na parte inferior
-        ground.body.immovable = true; //fazendo objeto ficar parado para que não caia quando houver colisao ao pular em cima
-
-        //criando 'plataformas'
-        var ledge;
-
-        ledge = this.platforms.create(-150, 300, 'ground'); //plataforma 1
-        ledge.body.immovable = true;
-
-        ledge = this.platforms.create(400, 400, 'ground'); //plataforma 2
-        ledge.body.immovable = true;
-
         //criando jogador
         this.player = this.add.sprite(32, 150, 'dude');
         this.physics.arcade.enable(this.player); //habilitando a fisica ao objeto do jogador
         this.player.body.bounce.y = 0.1;         //adicionando propriedades de fisica ao jogador (bounce vai de 0 a 1)
         this.player.body.gravity.y = this.gravityForce;
-        this.player.body.collideWorldBounds = true;
+        this.player.body.collideWorldBounds = true; //colidindo com as bordas da tela
 
         /***qualquer objeto que tenha que ter animação, deverá ser carregado como SPRITESHEET em preload()***/  
         //adicionando animações ao jogador, esquerda e direita
@@ -107,15 +98,27 @@ TheLittleGuy.Game.prototype = {
         this.backgroundMusic.play();
     },
 
+    //criando itens do tiled
+    /*createItems: function() { AINDa NÃO FUNCIONA
+        //create items
+        this.items = this.game.add.group();
+        this.items.enableBody = true;
+        var item;    
+        result = this.findObjectsByType('item', this.map, 'objectsLayer');
+        result.forEach(function(element){
+          this.createFromTiledObject(element, this.items);
+        }, this);
+    },*/
+
     update: function(){
         //escrevendo e mostrando os pontos
         this.textPoints.text = "Score : " + this.pointsPlayer;
 
         //fazendo player andar e parar
-        this.movimentPlayer();
+        this.movimentPlayer();        
 
         //fazendo player Pular
-        this.jumpPlayer();
+        this.detectFloorPlayer();
 
         //fazendo jogo terminar
         this.gameWin();
@@ -124,12 +127,44 @@ TheLittleGuy.Game.prototype = {
         this.lifeBar();
 
         //colidindo objetos (batendo / encostando) (estrela e chão)
-        this.physics.arcade.collide(this.stars, this.platforms);
+        this.physics.arcade.collide(this.stars, this.blockedLayer);
         this.physics.arcade.collide(this.player, this.spikes, this.damagePlayer, null, this);
         
         //verificando se o player está sobrepondo (passando por cima) da estrela e chamando funcao 'collectStar' que vai fazer o jogador coletar a estrela
         this.physics.arcade.overlap(this.player, this.stars, this.collectStar, null, this);
+
+        //debug
+        this.blockedLayer.debug = true;
+        this.game.debug.bodyInfo(this.player, 10, 10);
     },
+
+    //#region METODOS DO TILED PARA CRIACAO DO MESMO
+    //funcao auto-explicativa
+    //find objects in a Tiled layer that containt a property called "type" equal to a certain value
+    findObjectsByType: function(type, map, layer) {
+        var result = new Array();
+        map.objects[layer].forEach(function(element){
+        if(element.properties.type === type) {
+            //Phaser uses top left, Tiled bottom left so we have to adjust the y position
+            //also keep in mind that the cup images are a bit smaller than the tile which is 16x16
+            //so they might not be placed in the exact pixel position as in Tiled
+            element.y -= map.tileHeight;
+            result.push(element);
+        }      
+        });
+        return result;
+    },
+
+    //create a sprite from an object
+    createFromTiledObject: function(element, group) {
+        var sprite = group.create(element.x, element.y, element.properties.sprite);
+    
+        //copy all properties to the sprite
+        Object.keys(element.properties).forEach(function(key){
+            sprite[key] = element.properties[key];
+        });
+    },
+    //#endregion
 
     //#region METODOS PLAYER
     movimentPlayer: function(){
@@ -148,18 +183,29 @@ TheLittleGuy.Game.prototype = {
         }
     },
 
-    jumpPlayer: function(){
-        //colidindo jogador com o chão
-        //                                      primeiro objeto e segundo  
-        //obs : especialmente aqui, temos uma variavel para detectar se o jogador colidiu com o chão, para então habilitar o pulo
-        var hitPlataform = this.physics.arcade.collide(this.player, this.platforms);     
+    detectFloorPlayer: function(){
+        //variavel para detectar se o jogador colidiu com o chão, para então habilitar o pulo
+        //deteção da colisao com o chão antes do pulo, para evitar possiveis problemas com o mesmo
+        var hitGround = this.physics.arcade.collide(this.player, this.blockedLayer);    
 
         //se apertar o de espaço e estiver tocando no chão e em uma plataforma, pule
-        if(this.spaceKey.isDown && this.player.body.touching.down && hitPlataform){
+        if(this.spaceKey.isDown && this.player.body.onFloor() && hitGround){
             this.player.body.velocity.y =- this.jumpForce;  
             this.jummpEffect.volume = 0.2;
             this.jummpEffect.play(); //tocando som de pulo
         }
+
+        /* FUTURO METODO DE PULO (JOGABILIDADE INTERESSANTE)
+        futuramente fazer o player pular nas paredes? ao invés de utilizar "hitground" 
+        utilizar talvez "hitwall" e criar uma layer no tiled para paredes que podem ser utilizadas como jump
+        if(this.spaceKey.isDown && hitGround){
+            this.player.body.velocity.y =- this.jumpForce;  
+            this.jummpEffect.volume = 0.2;
+            this.jummpEffect.play(); //tocando som de pulo
+            //this.player.frame = 1;  //troca frame pulo, fazer melhor para esquerda e direita
+        }
+
+        */
     },
 
     damagePlayer: function(){
