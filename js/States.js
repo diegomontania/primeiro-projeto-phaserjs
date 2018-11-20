@@ -2,7 +2,7 @@
 var TheLittleGuy = TheLittleGuy || {};
 
 //instancia o phaser          tela:   x   y 
-TheLittleGuy.game = new Phaser.Game (800, 600, Phaser.AUTO, '');
+TheLittleGuy.game = new Phaser.Game (800, 592, Phaser.AUTO, '');
 
 //adicionando todos os estados do jogo
 TheLittleGuy.game.state.add('Boot', TheLittleGuy.Boot);

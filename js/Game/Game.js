@@ -24,14 +24,15 @@ TheLittleGuy.Game.prototype = {
         this.map.addTilesetImage('tiles', 'gameTiles'); //primeiro parametro, nome do tiled, segundo, chave associada a ele
         this.backgroundlayer = this.map.createLayer('backgroundLayer'); //criando as layers utilizadas no tiled
         this.blockedLayer = this.map.createLayer('blockedLayer');
+        this.objectsCenary = this.map.createLayer('objectsCenary');
         //colisao entre              1 e 3k de tiles
         this.map.setCollisionBetween(1, 3000, true, 'blockedLayer'); //colisao com a layer do tiled
 
         //resizes the game world to match the layer dimensions
         this.backgroundlayer.resizeWorld();
 
-        //teste tiled
-        //this.createItems();
+        //criação de 'itens' tiles
+        this.createItems();
 
         //criando texto de pontos
         this.textPoints = this.add.text(20, 20, "Apenas Teste", {
@@ -99,7 +100,7 @@ TheLittleGuy.Game.prototype = {
     },
 
     //criando itens do tiled
-    /*createItems: function() { AINDa NÃO FUNCIONA
+    createItems: function() {
         //create items
         this.items = this.game.add.group();
         this.items.enableBody = true;
@@ -108,7 +109,7 @@ TheLittleGuy.Game.prototype = {
         result.forEach(function(element){
           this.createFromTiledObject(element, this.items);
         }, this);
-    },*/
+    },
 
     update: function(){
         //escrevendo e mostrando os pontos
@@ -125,46 +126,13 @@ TheLittleGuy.Game.prototype = {
 
         //fazendo barra de vida
         this.lifeBar();
+        //metodos de colisão
+        this.collidingObjects();
+        this.overlapingObjects();
 
-        //colidindo objetos (batendo / encostando) (estrela e chão)
-        this.physics.arcade.collide(this.stars, this.blockedLayer);
-        this.physics.arcade.collide(this.player, this.spikes, this.damagePlayer, null, this);
-        
-        //verificando se o player está sobrepondo (passando por cima) da estrela e chamando funcao 'collectStar' que vai fazer o jogador coletar a estrela
-        this.physics.arcade.overlap(this.player, this.stars, this.collectStar, null, this);
-
-        //debug
-        this.blockedLayer.debug = true;
-        this.game.debug.bodyInfo(this.player, 10, 10);
+        //debug phaser
+        //this.debugPhaser();
     },
-
-    //#region METODOS DO TILED PARA CRIACAO DO MESMO
-    //funcao auto-explicativa
-    //find objects in a Tiled layer that containt a property called "type" equal to a certain value
-    findObjectsByType: function(type, map, layer) {
-        var result = new Array();
-        map.objects[layer].forEach(function(element){
-        if(element.properties.type === type) {
-            //Phaser uses top left, Tiled bottom left so we have to adjust the y position
-            //also keep in mind that the cup images are a bit smaller than the tile which is 16x16
-            //so they might not be placed in the exact pixel position as in Tiled
-            element.y -= map.tileHeight;
-            result.push(element);
-        }      
-        });
-        return result;
-    },
-
-    //create a sprite from an object
-    createFromTiledObject: function(element, group) {
-        var sprite = group.create(element.x, element.y, element.properties.sprite);
-    
-        //copy all properties to the sprite
-        Object.keys(element.properties).forEach(function(key){
-            sprite[key] = element.properties[key];
-        });
-    },
-    //#endregion
 
     //#region METODOS PLAYER
     movimentPlayer: function(){
@@ -223,6 +191,14 @@ TheLittleGuy.Game.prototype = {
             this.backgroundMusic.pause();
         }
     },
+
+    //barra de vida do jogador irá diminuir conforme a sua vida ou seja tomando dano
+    lifeBar: function(){
+        barWidth = this.healthBar.width;
+        this.healthBar.width = this.lifePlayer;
+        //mudar cor da barra aqui
+
+    },
     //#endregion
     
     //#region METODOS DE TRANSIÇÃO DE CENAS
@@ -240,6 +216,18 @@ TheLittleGuy.Game.prototype = {
     //#endregion
     
     //#region METODOS DIVERSOS
+    collidingObjects: function(){
+       //colidindo objetos (batendo / encostando) (estrela e chão)
+       this.physics.arcade.collide(this.stars, this.blockedLayer);
+       this.physics.arcade.collide(this.player, this.spikes, this.damagePlayer, null, this);
+    },
+
+    overlapingObjects: function(){
+        //verificando se o player está sobrepondo (passando por cima) da estrela e chamando funcao 'collectStar' que vai fazer o jogador coletar a estrela
+        this.physics.arcade.overlap(this.player, this.stars, this.collectStar, null, this);
+        this.physics.arcade.overlap(this.player, this.items, this.collectItem, null, this); //colidindo com objetos do tiled
+    },
+
     collectStar: function(player, star){
         //deletando objeto a ser coletado
         star.kill();
@@ -247,12 +235,45 @@ TheLittleGuy.Game.prototype = {
         this.pointsPlayer = this.pointsPlayer + 10; //adicionando pontos
     },
 
-    //barra de vida do jogador irá diminuir conforme a sua vida ou seja tomando dano
-    lifeBar: function(){
-        barWidth = this.healthBar.width;
-        this.healthBar.width = this.lifePlayer;
-        //mudar cor da barra aqui
+    collectItem: function(player, collectable) {
+        console.log('yummy!');
+    
+        //remove sprite
+        collectable.destroy();
+    },
+    
+    debugPhaser: function(){
+        //debug
+        this.blockedLayer.debug = true;
+        this.game.debug.bodyInfo(this.player, 10, 10);
+    },
+    //#endregion
 
+    //#region METODOS DO TILED PARA FUNCIONAMENTO DO MESMO
+    //funcao auto-explicativa
+    //find objects in a Tiled layer that containt a property called "type" equal to a certain value
+    findObjectsByType: function(type, map, layer) {
+        var result = new Array();
+        map.objects[layer].forEach(function(element){
+        if(element.properties.type === type) {
+            //Phaser uses top left, Tiled bottom left so we have to adjust the y position
+            //also keep in mind that the cup images are a bit smaller than the tile which is 16x16
+            //so they might not be placed in the exact pixel position as in Tiled
+            element.y -= map.tileHeight;
+            result.push(element);
+        }      
+        });
+        return result;
+    },
+
+    //create a sprite from an object
+    createFromTiledObject: function(element, group) {
+        var sprite = group.create(element.x, element.y, element.properties.sprite);
+        //copy all properties to the sprite
+        Object.keys(element.properties).forEach(function(key){
+            sprite[key] = element.properties[key];
+            
+        });
     }
     //#endregion
 }

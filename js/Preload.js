@@ -25,8 +25,7 @@ TheLittleGuy.Preload.prototype = {
         this.load.audio('menu_background_music', 'assets/sounds/menu_background_music.mp3');
 
         //carregando os assets do jogo
-        this.load.image('ground', 'assets/images/game/platform.png');
-        this.load.tilemap('level1', 'assets/tiled/level1.json', null, Phaser.Tilemap.TILED_JSON); //carrengado mapa do tiled via json
+        this.load.tilemap('level1', 'assets/tiled/level1_tiledVersion1.6.json', null, Phaser.Tilemap.TILED_JSON); //carrengado mapa do tiled via json
         this.load.image('gameTiles', 'assets/images/game/tiles.png');                             //imagem tiled
         this.load.image('greenBox', 'assets/images/game/greenBox.png');                                //teste item
         this.load.image('star', 'assets/images/game/star.png');
