@@ -60,7 +60,7 @@ TheLittleGuy.Game.prototype = {
         this.player.body.gravity.y = this.gravityForce;
         this.player.body.collideWorldBounds = true; //colidindo com as bordas da tela
 
-        /***qualquer objeto que tenha que ter animação, deverá ser carregado como SPRITESHEET em preload()***/  
+        /***qualquer objeto que tenha que ter animação, deverá ser carregado como SPRITESHEET em preload.js***/  
         //adicionando animações ao jogador, esquerda e direita
         //               nome animacao / todos os frames dessa animação / velocidade animação / loop sim ou não
         this.player.animations.add('left', [0, 1, 2, 3], 10, true);
@@ -74,7 +74,7 @@ TheLittleGuy.Game.prototype = {
             spike.body.immovable = true;  
         }      
 
-        //criando e posicionando
+        //criando e posicionando life bar
         var barBitmapData = this.add.bitmapData(200,40);
         barBitmapData.ctx.beginPath();
         barBitmapData.ctx.rect(0,0,180,30);
@@ -87,16 +87,8 @@ TheLittleGuy.Game.prototype = {
         //detectando as setas do teclado
         cursors = this.input.keyboard.createCursorKeys();  
         
-        //criando os sons carregados anteriomente
-        this.starEffect = this.game.add.audio('starEffect');
-        this.backgroundMusic = this.game.add.audio('backgroundMusic');
-        this.jummpEffect = this.game.add.audio('jumpEffect');
-        this.damageEffect = this.game.add.audio('damageEffect');
-
-        //tocando som de fundo
-        this.backgroundMusic.loop = true;
-        this.backgroundMusic.volume = 0.3;
-        this.backgroundMusic.play();
+        //carregando sons e efeitos de som do jogo
+        this.loadingSounds();
     },
 
     //criando itens do tiled
@@ -109,6 +101,19 @@ TheLittleGuy.Game.prototype = {
         result.forEach(function(element){
           this.createFromTiledObject(element, this.items);
         }, this);
+    },
+
+    loadingSounds: function(){
+        //criando os sons carregados anteriomente
+        this.starEffect = this.game.add.audio('starEffect');
+        this.backgroundMusic = this.game.add.audio('backgroundMusic');
+        this.jummpEffect = this.game.add.audio('jumpEffect');
+        this.damageEffect = this.game.add.audio('damageEffect');
+
+        //tocando som de fundo
+        this.backgroundMusic.loop = true;
+        this.backgroundMusic.volume = 0.3;
+        this.backgroundMusic.play();
     },
 
     update: function(){
