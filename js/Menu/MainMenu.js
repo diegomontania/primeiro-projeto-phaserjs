@@ -31,5 +31,5 @@ TheLittleGuy.MainMenu.prototype = {
 
     clickCredit: function() {
         this.game.state.start('Credit');
-    }
+    },  
 }

@@ -23,8 +23,10 @@ TheLittleGuy.Game.prototype = {
         this.map = this.game.add.tilemap('level1');
         this.map.addTilesetImage('tiles', 'gameTiles'); //primeiro parametro, nome do tiled, segundo, chave associada a ele
         this.backgroundlayer = this.map.createLayer('backgroundLayer'); //criando as layers utilizadas no tiled
+        this.objectsBottonLayer = this.map.createLayer('objectsBottonLayer');
         this.blockedLayer = this.map.createLayer('blockedLayer');
-        this.objectsCenary = this.map.createLayer('objectsCenary');
+        this.objectsTopLayer = this.map.createLayer('objectsTopLayer');
+
         //colisao entre              1 e 3k de tiles
         this.map.setCollisionBetween(1, 3000, true, 'blockedLayer'); //colisao com a layer do tiled
 
@@ -33,9 +35,10 @@ TheLittleGuy.Game.prototype = {
 
         //criação de 'itens' tiles
         this.createItems();
+        this.createSpikes();
 
         //criando texto de pontos
-        this.textPoints = this.add.text(20, 20, "Apenas Teste", {
+        this.textPoints = this.add.text(600, 5, "TEXTO TEXTO", {
                 font: "35px Arial",
                 fill: "#000000",
                 align: "center"
@@ -67,22 +70,22 @@ TheLittleGuy.Game.prototype = {
         this.player.animations.add('right', [5, 6, 7, 8], 10, true);
 
         //criando obstaculo
-        this.spikes = this.add.group();
+        /*this.spikes = this.add.group();
         this.spikes.enableBody = true;
         for(var i = 0; i < 5; i++){ //criando 'spike' a partir do grupo já instanciado com fisica
             var spike = this.spikes.create(25 * i, 505, 'spike'); 
             spike.body.immovable = true;  
-        }      
+        }      */
 
         //criando e posicionando life bar
-        var barBitmapData = this.add.bitmapData(200,40);
+        var barBitmapData = this.add.bitmapData(200, 20);
         barBitmapData.ctx.beginPath();
         barBitmapData.ctx.rect(0,0,180,30);
         barBitmapData.ctx.fillStyle = '#31FF00';
         barBitmapData.ctx.fill();
-        this.healthBar = this.add.sprite(70, 555, barBitmapData); //criando aqui
+        this.healthBar = this.add.sprite(45, 15, barBitmapData); //criando aqui
         this.healthBar.anchor.y = 0.0;
-        this.add.sprite(0, 540, 'dude_hud'); //rosto do personagem
+        this.add.sprite(10, 10, 'dude_hud'); //rosto do personagem
 
         //detectando as setas do teclado
         cursors = this.input.keyboard.createCursorKeys();  
@@ -100,6 +103,18 @@ TheLittleGuy.Game.prototype = {
         result = this.findObjectsByType('item', this.map, 'objectsLayer');
         result.forEach(function(element){
           this.createFromTiledObject(element, this.items);
+        }, this);
+    },
+
+    createSpikes: function() {
+        //create spike
+        this.damages = this.game.add.group();
+        this.damages.enableBody = true;
+        //this.damages.body.immovable = true;  AINDA NAO FUNFA
+        var damages;    
+        result = this.findObjectsByType('damage', this.map, 'objectsLayer');
+        result.forEach(function(element){
+          this.createFromTiledObject(element, this.damages);
         }, this);
     },
 
@@ -131,6 +146,7 @@ TheLittleGuy.Game.prototype = {
 
         //fazendo barra de vida
         this.lifeBar();
+        
         //metodos de colisão
         this.collidingObjects();
         this.overlapingObjects();
@@ -224,7 +240,7 @@ TheLittleGuy.Game.prototype = {
     collidingObjects: function(){
        //colidindo objetos (batendo / encostando) (estrela e chão)
        this.physics.arcade.collide(this.stars, this.blockedLayer);
-       this.physics.arcade.collide(this.player, this.spikes, this.damagePlayer, null, this);
+       this.physics.arcade.collide(this.player, this.damages, this.damagePlayer, null, this);
     },
 
     overlapingObjects: function(){
@@ -279,6 +295,6 @@ TheLittleGuy.Game.prototype = {
             sprite[key] = element.properties[key];
             
         });
-    }
+    },
     //#endregion
 }
