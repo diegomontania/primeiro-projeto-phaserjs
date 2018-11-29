@@ -28,7 +28,7 @@ TheLittleGuy.Game.prototype = {
         this.objectsTopLayer = this.map.createLayer('objectsTopLayer');
 
         //colisao entre              1 e 3k de tiles
-        this.map.setCollisionBetween(1, 3000, true, 'blockedLayer'); //colisao com a layer do tiled
+        this.map.setCollisionBetween(1, 3000, true, 'blockedLayer'); //colisao com a layer do tiled de 'chao' 
 
         //resizes the game world to match the layer dimensions
         this.backgroundlayer.resizeWorld();
@@ -110,8 +110,8 @@ TheLittleGuy.Game.prototype = {
         //create spike
         this.damages = this.game.add.group();
         this.damages.enableBody = true;
-        //this.damages.body.immovable = true;  AINDA NAO FUNFA
-        var damages;    
+        
+        var damage;    
         result = this.findObjectsByType('damage', this.map, 'objectsLayer');
         result.forEach(function(element){
           this.createFromTiledObject(element, this.damages);

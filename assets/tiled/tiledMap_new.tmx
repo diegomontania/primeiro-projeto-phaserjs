@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.0.0" orientation="orthogonal" renderorder="right-down" width="50" height="37" tilewidth="16" tileheight="16" nextobjectid="29">
+<map version="1.0" tiledversion="1.1.6" orientation="orthogonal" renderorder="right-down" width="50" height="37" tilewidth="16" tileheight="16" infinite="0" nextobjectid="29">
  <tileset firstgid="1" name="tiles" tilewidth="16" tileheight="16" tilecount="4000" columns="50">
   <image source="../images/game/tiles.png" trans="5a5268" width="800" height="1280"/>
+  <tile id="2766">
+   <properties>
+    <property name="sprite" value="spike"/>
+    <property name="type" value="damage"/>
+   </properties>
+  </tile>
  </tileset>
  <layer name="backgroundLayer" width="50" height="37">
   <data encoding="csv">

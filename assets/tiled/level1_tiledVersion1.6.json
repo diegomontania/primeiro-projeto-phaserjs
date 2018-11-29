@@ -336,6 +336,22 @@
          "spacing":0,
          "tilecount":4000,
          "tileheight":16,
+         "tileproperties":
+            {
+             "2766":
+                {
+                 "sprite":"spike",
+                 "type":"damage"
+                }
+            },
+         "tilepropertytypes":
+            {
+             "2766":
+                {
+                 "sprite":"string",
+                 "type":"string"
+                }
+            },
          "tilewidth":16,
          "transparentcolor":"#5a5268"
         }],
