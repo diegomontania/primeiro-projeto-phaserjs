@@ -7,22 +7,14 @@ TheLittleGuy.Game.prototype = {
 
     //funciona como um 'start'
     create: function(){
-        //variaveis do player
-        this.jumpForce = 250;
-        this.velocityPlayer = 150;
-        this.gravityForce = 450;
-        this.lifePlayer = 100;
-        this.pointsPlayer = 0;
-        this.pointsMax = 120;
-        this.damage = 0; //inicialmente comecará com 0
-
         //registrando uma tecla        propriedade do phase da tecla desejada
         this.spaceKey = this.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
-        //criado tiled
+        //criado cenário via tiled
         this.map = this.game.add.tilemap('level1');
         this.map.addTilesetImage('tiles', 'gameTiles'); //primeiro parametro, nome do tiled, segundo, chave associada a ele
         this.backgroundlayer = this.map.createLayer('backgroundLayer'); //criando as layers utilizadas no tiled
+        this.blockobjectsBottonLayerBehind_LittleDetailsedLayer = this.map.createLayer('objectsBottonLayerBehind_LittleDetails');
         this.objectsBottonLayer = this.map.createLayer('objectsBottonLayer');
         this.blockedLayer = this.map.createLayer('blockedLayer');
         this.objectsTopLayer = this.map.createLayer('objectsTopLayer');
@@ -33,102 +25,47 @@ TheLittleGuy.Game.prototype = {
         //resizes the game world to match the layer dimensions
         this.backgroundlayer.resizeWorld();
 
-        //criação de 'itens' tiles
+        //criação de 'itens' que possuem colisão 'overlap' via tiled
         this.createItems();
-        this.createSpikes();
 
         //criando texto de pontos
-        this.textPoints = this.add.text(600, 5, "TEXTO TEXTO", {
-                font: "35px Arial",
-                fill: "#000000",
+        this.textPoints = this.add.text(580, 543, "TEXTO TEXTO", {
+                font: "30px Arial",
+                fill: "#ffffff",
                 align: "center"
         });
         this.textPoints.anchor.setTo(0, 0); //ancorando texto
         
+        //#####criando objetos que colidem diretamente pelo phaser, sem tiled#####\\
+
         //criando grupo de estrelas
         this.stars = this.add.group();
         this.stars.enableBody = true;
-
-        //criando as estrelas
         for(var i = 0; i < 12; i++){
             var star = this.stars.create (i * 70, 0, 'star');     
             star.body.gravity.y = 1 + Math.random() * 10;    //gravidade atuando randomicamente para cada estrela
             star.body.bounce.y = 0.7 + Math.random() * 0.2;  //estrelas quicando no chão randomicamente
         }
 
-        //criando jogador
-        this.player = this.add.sprite(32, 150, 'dude');
-        this.physics.arcade.enable(this.player); //habilitando a fisica ao objeto do jogador
-        this.player.body.bounce.y = 0.1;         //adicionando propriedades de fisica ao jogador (bounce vai de 0 a 1)
-        this.player.body.gravity.y = this.gravityForce;
-        this.player.body.collideWorldBounds = true; //colidindo com as bordas da tela
-
-        /***qualquer objeto que tenha que ter animação, deverá ser carregado como SPRITESHEET em preload.js***/  
-        //adicionando animações ao jogador, esquerda e direita
-        //               nome animacao / todos os frames dessa animação / velocidade animação / loop sim ou não
-        this.player.animations.add('left', [0, 1, 2, 3], 10, true);
-        this.player.animations.add('right', [5, 6, 7, 8], 10, true);
-
-        //criando obstaculo
-        /*this.spikes = this.add.group();
+        //criando grupo de espetos
+        this.spikes = this.add.group();
         this.spikes.enableBody = true;
-        for(var i = 0; i < 5; i++){ //criando 'spike' a partir do grupo já instanciado com fisica
-            var spike = this.spikes.create(25 * i, 505, 'spike'); 
+        this.spikes.x = 160;
+        this.spikes.y = 500;
+        for(var i = 0; i < 8; i++){     //criando 'spike' a partir do grupo já instanciado com fisica
+            var spike = this.spikes.create(16 * i, 0, 'spike'); 
             spike.body.immovable = true;  
-        }      */
+        }   
 
-        //criando e posicionando life bar
-        var barBitmapData = this.add.bitmapData(200, 20);
-        barBitmapData.ctx.beginPath();
-        barBitmapData.ctx.rect(0,0,180,30);
-        barBitmapData.ctx.fillStyle = '#31FF00';
-        barBitmapData.ctx.fill();
-        this.healthBar = this.add.sprite(45, 15, barBitmapData); //criando aqui
-        this.healthBar.anchor.y = 0.0;
-        this.add.sprite(10, 10, 'dude_hud'); //rosto do personagem
-
-        //detectando as setas do teclado
-        cursors = this.input.keyboard.createCursorKeys();  
+        //criando o jogador com todos os seus atributos, animações, barra de vida e etc
+        this.createPlayer();
+        this.createLifeBar();
         
         //carregando sons e efeitos de som do jogo
         this.loadingSounds();
-    },
-
-    //criando itens do tiled
-    createItems: function() {
-        //create items
-        this.items = this.game.add.group();
-        this.items.enableBody = true;
-        var item;    
-        result = this.findObjectsByType('item', this.map, 'objectsLayer');
-        result.forEach(function(element){
-          this.createFromTiledObject(element, this.items);
-        }, this);
-    },
-
-    createSpikes: function() {
-        //create spike
-        this.damages = this.game.add.group();
-        this.damages.enableBody = true;
         
-        var damage;    
-        result = this.findObjectsByType('damage', this.map, 'objectsLayer');
-        result.forEach(function(element){
-          this.createFromTiledObject(element, this.damages);
-        }, this);
-    },
-
-    loadingSounds: function(){
-        //criando os sons carregados anteriomente
-        this.starEffect = this.game.add.audio('starEffect');
-        this.backgroundMusic = this.game.add.audio('backgroundMusic');
-        this.jummpEffect = this.game.add.audio('jumpEffect');
-        this.damageEffect = this.game.add.audio('damageEffect');
-
-        //tocando som de fundo
-        this.backgroundMusic.loop = true;
-        this.backgroundMusic.volume = 0.3;
-        this.backgroundMusic.play();
+        //detectando as setas do teclado
+        cursors = this.input.keyboard.createCursorKeys();  
     },
 
     update: function(){
@@ -156,6 +93,39 @@ TheLittleGuy.Game.prototype = {
     },
 
     //#region METODOS PLAYER
+    createPlayer: function(){
+        //variaveis do player
+        this.jumpForce = 250;
+        this.velocityPlayer = 150;
+        this.gravityForce = 450;
+        this.lifePlayer = 100;
+        this.pointsPlayer = 0;
+        this.pointsMax = 120;
+        this.damage = 0; //inicialmente comecará com 0
+
+        //criando jogador
+        this.player = this.add.sprite(10, 150, 'dude');
+        this.physics.arcade.enable(this.player); //habilitando a fisica ao objeto do jogador
+        this.player.body.bounce.y = 0.1;         //adicionando propriedades de fisica ao jogador (bounce vai de 0 a 1)
+        this.player.body.gravity.y = this.gravityForce;
+        this.player.body.collideWorldBounds = true; //colidindo com as bordas da tela
+
+        /***qualquer objeto que tenha que ter animação, deverá ser carregado como SPRITESHEET em preload.js***/  
+        //adicionando animações ao jogador, esquerda e direita
+        //               nome animacao / todos os frames dessa animação / velocidade animação / loop sim ou não
+        this.player.animations.add('left', [0, 1, 2, 3], 10, true);
+        this.player.animations.add('right', [5, 6, 7, 8], 10, true);
+    },
+
+    createLifeBar: function(){
+        //criando e posicionando barra de vida do jogador e hud com o rosto do personagem
+        this.add.sprite(20, 545, 'dude_hud'); //rosto do personagem
+        this.healthBar = this.add.sprite(52, 550, 'lifeBar'); //criando aqui
+        this.healthBar.scale.setTo(0.4, 0.6);
+        this.healthBar.anchor.y = 0.0;
+        this.healthBar.animations.add('changeColorBar', [0, 1, 2, 3], 1, true);
+    },
+
     movimentPlayer: function(){
         if(cursors.left.isDown){
             this.player.body.velocity.x =- this.velocityPlayer;  //velocidade
@@ -215,13 +185,34 @@ TheLittleGuy.Game.prototype = {
 
     //barra de vida do jogador irá diminuir conforme a sua vida ou seja tomando dano
     lifeBar: function(){
-        barWidth = this.healthBar.width;
         this.healthBar.width = this.lifePlayer;
-        //mudar cor da barra aqui
 
+        //mudando cor da barra conforme o hp
+        if (this.lifePlayer <= 40){
+            this.healthBar.frame = 3;
+        } else if (this.lifePlayer <= 60){
+            this.healthBar.frame = 2;
+        } else if (this.lifePlayer <= 80){
+            this.healthBar.frame = 1;
+        }
     },
     //#endregion
     
+    //#region METODOS DE AUDIO / SOM
+    loadingSounds: function(){
+        //criando os sons carregados anteriomente
+        this.starEffect = this.game.add.audio('starEffect');
+        this.backgroundMusic = this.game.add.audio('backgroundMusic');
+        this.jummpEffect = this.game.add.audio('jumpEffect');
+        this.damageEffect = this.game.add.audio('damageEffect');
+
+        //tocando som de fundo
+        this.backgroundMusic.loop = true;
+        this.backgroundMusic.volume = 0.3;
+        this.backgroundMusic.play();
+    },
+    //#endregion
+
     //#region METODOS DE TRANSIÇÃO DE CENAS
     gameWin: function(){
         //se fizer o máximo de pontos
@@ -240,7 +231,7 @@ TheLittleGuy.Game.prototype = {
     collidingObjects: function(){
        //colidindo objetos (batendo / encostando) (estrela e chão)
        this.physics.arcade.collide(this.stars, this.blockedLayer);
-       this.physics.arcade.collide(this.player, this.damages, this.damagePlayer, null, this);
+       this.physics.arcade.collide(this.player, this.spikes, this.damagePlayer, null, this);
     },
 
     overlapingObjects: function(){
@@ -271,6 +262,22 @@ TheLittleGuy.Game.prototype = {
     //#endregion
 
     //#region METODOS DO TILED PARA FUNCIONAMENTO DO MESMO
+
+    //#####Itens#####
+    //criando itens do tiled
+    createItems: function() {
+        //create items
+        this.items = this.game.add.group();
+        this.items.enableBody = true;
+        var item;    
+        result = this.findObjectsByType('item', this.map, 'objectsLayer');
+        result.forEach(function(element){
+          this.createFromTiledObject(element, this.items);
+        }, this);
+    },
+
+    //adicionar uma nova função aqui de 'createXXX' para um novo item futuro.
+
     //funcao auto-explicativa
     //find objects in a Tiled layer that containt a property called "type" equal to a certain value
     findObjectsByType: function(type, map, layer) {
@@ -293,7 +300,6 @@ TheLittleGuy.Game.prototype = {
         //copy all properties to the sprite
         Object.keys(element.properties).forEach(function(key){
             sprite[key] = element.properties[key];
-            
         });
     },
     //#endregion
